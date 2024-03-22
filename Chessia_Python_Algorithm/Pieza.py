@@ -3,7 +3,6 @@ class Pieza:
         self.nombre = nombre
         self.color = color
         self.vivo = True
-        self.mate = mate
         self.x = x
         self.y = y
 
@@ -38,3 +37,9 @@ class Pieza:
         for pieza in piezas:
             print(f"{i:<3} {pieza.nombre:<11} | {chr(pieza.x+96)}{pieza.y} | {'O' if pieza.vivo is True else 'X'}")
             i+=1
+
+    def matar(self):
+        #Podría borrar el objeto, todavía no lo se
+        self.vivo = False
+        self.x = 0
+        self.y = 0

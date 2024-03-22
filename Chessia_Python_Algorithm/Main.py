@@ -29,23 +29,34 @@ class Main:
     @staticmethod
     def main():
         partida = Partida()
+        global valido
+        valido = False
 
         while True:
             
-            valido = False; partida.mueveBlancas = True
+            Main.nuevo_movimiento(partida)
             
             while not valido:
                 partida.visualizar_partida(partida)
                 valido = partida.ejecuta_mov_entrada(input("\n\t    JUGADA DE BLANCAS: "))
 
-            valido = False; partida.mueveBlancas = False
+            Main.nuevo_movimiento(partida, "N")
 
             while not valido:
                 partida.visualizar_partida(partida)
                 valido = partida.ejecuta_mov_entrada(input("\n\t    JUGADA DE NEGRAS: "))
             
+
+
+    def nuevo_movimiento(partida, color="B"):
+        global valido
+        valido = False
+        partida.mueveBlancas = True if color == "B" else False
+        
+        if partida.al_paso_activo is not None and color == partida.al_paso_activo.color: 
+            partida.al_paso_activo = None
+        
+        if color == "B":
             partida.turno +=1
-
-
 
 Main.main()

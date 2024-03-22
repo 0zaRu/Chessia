@@ -5,8 +5,9 @@ import re
 class Partida:
     def __init__(self):
         self.tablero = Pieza.crear_piezas_partida()
-        self.turno = 1
+        self.turno = 0
         self.mueveBlancas = True
+        self.al_paso_activo = None
         self.posibles_jugadas_algebraicas = {
             r'^[a-h][1-8]$': self.movimiento_peon,                        # Movimiento de peón
             r'^[a-h]x[a-h][1-8]$': self.comer_de_peon,                    # Captura de peón
@@ -49,43 +50,62 @@ class Partida:
         return False
             
     def movimiento_peon(self, partida, jugada):
+        posible_al_paso = False
+        #Guardamos las nuevas coordenadas a las que ir
         nuevaX = ord(jugada[len(jugada)-2].strip())-96
         nuevaY = int(jugada[len(jugada)-1])
 
-        #Si la casilla a la que querenos mover está vacía
-        if len(list(filter(lambda pieza: pieza.x == nuevaX and pieza.y == nuevaY, partida.tablero))) == 0:
-            
-            #Si la pieza está a 1 casilla de distancia y existe una válida
-            posible_pieza = list(filter(lambda pieza: pieza.x == nuevaX and pieza.y == nuevaY-(1 if self.mueveBlancas else -1), partida.tablero))
-            
-            #Si no se ha encontrado pieza y es viable un desplazamiento de 2 casillas, se verifica si hay pieza a 2 casillas
-            if (len(posible_pieza) == 0 and (nuevaY == 4 and self.mueveBlancas) or (nuevaY == 5 and not self.mueveBlancas)):
-                posible_pieza = list(filter(lambda pieza: pieza.x == nuevaX and pieza.y == nuevaY-(2 if self.mueveBlancas else -2), partida.tablero))
-            
-            #Si hemos encontrado pieza en algun contexto y es un peón, desplazamos
-            if(len(posible_pieza) == 1 and "Peon" in posible_pieza[0].nombre):
+        #Si la casilla a la que queremos mover tiene pieza, nos salimos
+        if Partida.comprueba_pieza_casilla(partida, nuevaX, nuevaY) is not None:
+            input("\n\t    Jugada incorrecta, hay una pieza en esta casilla ...")
+            return False
+
+        #Se busca una pieza a 1 casilla de distancia
+        pieza = Partida.comprueba_pieza_casilla(partida, nuevaX, nuevaY-(1 if self.mueveBlancas else -1), "Peon", "B" if self.mueveBlancas else "N" ) 
         
-                #Ubicamos la pieza en la lista y le actualizamos la x y la y
-                partida.tablero.__getitem__(partida.tablero.index(posible_pieza[0])).x = nuevaX
-                partida.tablero.__getitem__(partida.tablero.index(posible_pieza[0])).y = nuevaY
-                return True
+        #Si no se cuentra pieza a 1 casilla de distancia
+        #Y la casilla a la que se quiere llegar es de fila 4 o 5, se busca peón a 2 casillas
+        if pieza is None and (nuevaY == 4 and self.mueveBlancas or nuevaY == 5 and not self.mueveBlancas):
+            pieza = Partida.comprueba_pieza_casilla(partida, nuevaX, nuevaY-(2 if self.mueveBlancas else -2), "Peon", "B" if self.mueveBlancas else "N")
+            posible_al_paso = True
             
-            else:
-                input("\n\t    Jugada incorrecta, ningun peón puede ...")
-        else:
-                input("\n\t    Jugada incorrecta, hay una pieza en esta casilla ...")
-        
+        #Si había pieza a 1 casilla distancia o si era viable que la hubiese a 2 y la hay, ubicamos la pieza en la lista y le actualizamos la x y la y
+        if pieza is not None:
+            devolver = Partida.actualiza_pieza(partida, pieza, nuevaX, nuevaY)
+            
+            #Si es una pieza a 2 casillas, la activamos como válida para comer al paso
+            if posible_al_paso and devolver: self.al_paso_activo = pieza
+            return devolver
+
+        input("\n\t    Jugada incorrecta, no hay un Peón que pueda hacerla ...")
         return False
-
+        
     def comer_de_peon(self, partida, jugada):
+        #Guardamos las nuevas coordenadas a las que ir y la columna antigua
+        antX   = ord(jugada[len(jugada)-4].strip())-96
         nuevaX = ord(jugada[len(jugada)-2].strip())-96
         nuevaY = int(jugada[len(jugada)-1])
 
-        #Si la casilla a la que querenos mover tiene una pieza
-        if len(list(filter(lambda pieza: pieza.x == nuevaX and pieza.y == nuevaY, partida.tablero))) == 1:
-            pass
-
+        #Recogemos la posición del supuesto peón que va a comer, considerando que sea del color que toca. También la casilla donde comemos
+        pieza = Partida.comprueba_pieza_casilla(partida, antX, nuevaY-(1 if self.mueveBlancas else -1), "Peon", "B" if self.mueveBlancas else "N")
+        pieza_a_comer = Partida.comprueba_pieza_casilla(partida, nuevaX, nuevaY, "", "N" if self.mueveBlancas else "B")
     
+        #Si hay una pieza válida a comer al paso, no hay pieza a donde queremos llegar, y estamos pegados a la pieza, es que es captura al paso.
+        if self.al_paso_activo is not None and pieza_a_comer is None and self.al_paso_activo.x == nuevaX and self.al_paso_activo.y == nuevaY-(1 if self.mueveBlancas else -1):
+            #Desplazamos la pieza a la casilla donde queremos movernos porque así no hay que modificar algoritmos de captura y movimiento
+            Partida.actualiza_pieza(partida, self.al_paso_activo, nuevaX, nuevaY)
+            pieza_a_comer = self.al_paso_activo
+            
+        #Si la casilla a la que queremos mover no tiene pieza, es de mi color o no hay peón donde nos decían, nos salimos
+        if pieza_a_comer is None \
+        or pieza is None \
+        or abs(antX-nuevaX) != 1:
+
+            input("\n\t    Jugada incorrecta, no hay una pieza o peón válido en estas casillas ...")
+            return False
+
+        return Partida.actualiza_pieza(partida, pieza, nuevaX, nuevaY)
+
     def jugada_pieza(self, partida, jugada):
         print(f"dasdads  --")
 
@@ -94,3 +114,27 @@ class Partida:
 
     def jugada_promocion(self, partida, jugada):
         print(f"dasdads  --")
+
+    def comprueba_pieza_casilla(partida, x, y, nombre="", color=""):
+        try:
+            recogido = next(filter(lambda pieza: pieza.x == x and pieza.y == y, partida.tablero))
+            if nombre in recogido.nombre and color in recogido.nombre:
+                return recogido
+        
+        except StopIteration: pass
+        return None
+        
+    def actualiza_pieza(partida, pieza, nuevaX, nuevaY):
+        try:
+
+            pieza_a_borrar = Partida.comprueba_pieza_casilla(partida, nuevaX, nuevaY)
+            if pieza_a_borrar is not None:
+                partida.tablero.__getitem__(partida.tablero.index(pieza_a_borrar)).matar()
+
+            partida.tablero.__getitem__(partida.tablero.index(pieza)).x = nuevaX
+            partida.tablero.__getitem__(partida.tablero.index(pieza)).y = nuevaY
+            return True
+
+        except Exception:
+            input("\n\t    Error en actualiza_pieza(...) en Partida")
+            return False
