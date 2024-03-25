@@ -15,13 +15,6 @@ class Partida:
             r'^O-O(-O)?$': self.jugada_enroque,                           # Enroque ya sea largo o corto
             r'^([a-h]x)?[a-h][18](=[DTAC])$': self.jugada_promocion       # Promocíon de Peón a una pieza moviendo o comiendo
         }
-        #self.verificaciones = {
-        #    "T": self.verifica_fila_columna,
-        #    "A": self.verifica_diagonal,
-        #    "C": self.verifica_saltos,
-        #    "R": self.verifica_1_distancia,
-        #    "D": self.verifica_fila_columna or self.verifica_diagonal
-        #}
     
     @staticmethod
     def visualizar_partida(partida, hayPieza=False):
