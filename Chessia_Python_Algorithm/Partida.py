@@ -11,11 +11,17 @@ class Partida:
         self.posibles_jugadas_algebraicas = {
             r'^[a-h][1-8]$': self.movimiento_peon,                        # Movimiento de peón
             r'^[a-h]x[a-h][1-8]$': self.comer_de_peon,                    # Captura de peón
-            r'^[RDTAC][a-h1-8]?[a-h][1-8]$': self.movimiento_pieza,       # Movimiento o captura de una pieza (!peon)
-            r'^[RDTAC][a-h1-8]?x[a-h][1-8]$': self.comer_de_pieza,       # Movimiento o captura de una pieza (!peon)
+            r'^[RDTAC][a-h1-8]?x?[a-h][1-8]$': self.jugada_pieza,           # Movimiento o captura de una pieza (!peon)
             r'^O-O(-O)?$': self.jugada_enroque,                           # Enroque ya sea largo o corto
             r'^([a-h]x)?[a-h][18](=[DTAC])$': self.jugada_promocion       # Promocíon de Peón a una pieza moviendo o comiendo
         }
+        #self.verificaciones = {
+        #    "T": self.verifica_fila_columna,
+        #    "A": self.verifica_diagonal,
+        #    "C": self.verifica_saltos,
+        #    "R": self.verifica_1_distancia,
+        #    "D": self.verifica_fila_columna or self.verifica_diagonal
+        #}
     
     @staticmethod
     def visualizar_partida(partida, hayPieza=False):
@@ -108,49 +114,44 @@ class Partida:
         return Partida.actualiza_pieza(partida, pieza, nuevaX, nuevaY)
 
 
-    def movimiento_pieza(self, partida, jugada):
-        # Si la jugada es de 4 letras, es que se ha especificado el origen de la pieza, hay que guardar este parámetro 
-        # y comparar que realmente otra pieza de este tipo también podía hacer la jugada
-        antP = None
-        if len(jugada) is 4:
-            antP = ord(jugada[1].strip())-96 if str(jugada[1]).isalpha() else int(jugada[1])
-            esX = True if str(jugada[1]).isalpha() else False
-        
+    def jugada_pieza(self, partida, jugada):
+        #Almacenamiento de nueva casilla de destino
         nuevaX = ord(jugada[len(jugada)-2].strip())-96
         nuevaY = int(jugada[len(jugada)-1])
 
-        if Partida.comprueba_pieza_casilla(partida, nuevaX, nuevaY) is not None:
-            input("\n\t    Jugada incorrecta, hay una pieza en esta casilla ...")
+        #Se recoge la nueva casilla y se comprueba que si hay algo es del otro equipo y es para comer y que si no hay nada es para mover
+        destino = Partida.comprueba_pieza_casilla(partida, nuevaX, nuevaY)
+        if ("x" in jugada and (destino is None or ("B" if self.mueveBlancas else "N") is destino.nombre[-1])) \
+            or ("x" not in jugada and destino is not None):
+            input("\n\t    Jugada incorrecta, problema en la casilla de destino ...")
             return False
         
-        if jugada[0] is "T":
-            if antP is not None:
-                pieza = Partida.comprueba_pieza_casilla(partida, antP if esX else nuevaX, antP if not esX else nuevaY, "T", "B" if self.mueveBlancas else "N")
-        
-                if pieza is None:
-                    input("\n\t    Jugada incorrecta, no hay un Torre que pueda hacerla ..."); return False
-                
-                #Comprobamos todas las filas entre la pieza y el destino para ver que está vacío, podría comprobar solo un eje pero hago los dos pawra que sea más fácil extrapolar en un futuro
-                #for i in range(pieza.X, nuevaX, 1 if pieza.X < nuevaX else (-1 if pieza.X > nuevaX else 0)):
-                #    for j in range(pieza.Y, nuevaY, 1 if pieza.Y < nuevaY else (-1 if pieza.Y > nuevaY else 0)):
-                #        if Partida.comprueba_pieza_casilla(partida, i, j) is not None:
-                #            input("\n\t    Jugada incorrecta, no hay una Torre con visibilidad válida ..."); return False
-                
-                for i in range(pieza.x, nuevaX, 1 if pieza.x < nuevaX else -1):
-                    for j in range(pieza.y, nuevaY, 1 if pieza.y < nuevaY else -1):
-                        print("ou")
-                        if Partida.comprueba_pieza_casilla(partida, i, j) is not None:
-                            input("\n\t    Jugada incorrecta, no hay una Torre con visibilidad válida ..."); return False
-                        else:
-                            input("yeiiiiiiiii")
-                
+        #Se recorren todas las piezas del tablero
+        for pieza in partida.tablero:
+            #Filtramos primero los caballos, que no necesitan comprobar casillas vacias
+            if ((abs(nuevaX - pieza.x)+abs(nuevaY - pieza.y) is 3) and nuevaX != pieza.x and nuevaY != pieza.y and jugada[0] is "C" and pieza.nombre[0] is "C"): 
                 return Partida.actualiza_pieza(partida, pieza, nuevaX, nuevaY)
+            
+            #Filtramos la piezas, deben ser del color del turno y tener la letra de la jugada en el nombre, además de ser T, D o R si están en la misma fila o columna y ser A, D o R si es diagonal
+            if (("B" if partida.mueveBlancas else "N") in pieza.nombre and jugada[0] in pieza.nombre[0]) \
+            and (((pieza.x == nuevaX or pieza.y == nuevaY) and jugada[0] in ["T", "D", "R"] and (pieza.x-nuevaX == 1 or pieza.y-nuevaY == 1) if jugada[0] in ["R"] else True) \
+            or (abs(pieza.x - nuevaX) == abs(pieza.y - nuevaY) and jugada[0] in ["A", "D", "R"] and (pieza.x-nuevaX == 1 or pieza.y-nuevaY == 1) if jugada[0] in ["R"] else True)):
+                valido = True
+                
+                #zip 1: comparte columna (torre o dama)        #zip 2: comparte fila (torre o dama)       #zip 3: no comparte nada (alfil o dama)        
+                for i, j in \
+                zip(list(nuevaX for x in range(1, 9)), range(nuevaY-(1 if pieza.y < nuevaY else -1), pieza.y, 1 if nuevaY < pieza.y else -1)) if nuevaX is pieza.x else (\
+                zip(range(nuevaX-(1 if pieza.x < nuevaX else -1), pieza.x, 1 if nuevaX < pieza.x else -1), list(nuevaY for y in range(1, 9))) if nuevaY is pieza.y else \
+                zip(range(nuevaX-(1 if pieza.x < nuevaX else -1), pieza.x, 1 if nuevaX < pieza.x else -1), range(nuevaY-(1 if pieza.y < nuevaY else -1), pieza.y, 1 if nuevaY < pieza.y else -1))):    
+                    
+                    if Partida.comprueba_pieza_casilla(partida, i, j) is not None:
+                        valido = False
 
-
-
-    def comer_de_pieza(self, partida, jugada):
-        pass
-
+                if valido: return Partida.actualiza_pieza(partida, pieza, nuevaX, nuevaY)    
+        
+        input("\n\t    Jugada incorrecta, no hay piezas viables ...")
+        return False
+        
 
     def jugada_enroque(self, partida, jugada):
         print(f"dasdads  --")
