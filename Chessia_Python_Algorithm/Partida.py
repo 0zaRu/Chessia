@@ -113,7 +113,6 @@ class Partida:
 
         return Partida.actualiza_pieza(partida, pieza, nuevaX, nuevaY)
 
-
     def jugada_pieza(self, partida, jugada):
         #Almacenamiento de nueva casilla de destino
         nuevaX = ord(jugada[len(jugada)-2].strip())-96
@@ -129,13 +128,14 @@ class Partida:
         #Se recorren todas las piezas del tablero
         for pieza in partida.tablero:
             #Filtramos primero los caballos, que no necesitan comprobar casillas vacias
-            if ((abs(nuevaX - pieza.x)+abs(nuevaY - pieza.y) is 3) and nuevaX != pieza.x and nuevaY != pieza.y and jugada[0] is "C" and pieza.nombre[0] is "C"): 
+            if (((abs(nuevaX - pieza.x)+abs(nuevaY - pieza.y)) == 3) and (nuevaX != pieza.x and nuevaY != pieza.y) and (jugada[0] is "C" and pieza.nombre[0] is "C")): 
                 return Partida.actualiza_pieza(partida, pieza, nuevaX, nuevaY)
             
             #Filtramos la piezas, deben ser del color del turno y tener la letra de la jugada en el nombre, además de ser T, D o R si están en la misma fila o columna y ser A, D o R si es diagonal
             if (("B" if partida.mueveBlancas else "N") in pieza.nombre and jugada[0] in pieza.nombre[0]) \
-            and (((pieza.x == nuevaX or pieza.y == nuevaY) and jugada[0] in ["T", "D", "R"] and (pieza.x-nuevaX == 1 or pieza.y-nuevaY == 1) if jugada[0] in ["R"] else True) \
-            or (abs(pieza.x - nuevaX) == abs(pieza.y - nuevaY) and jugada[0] in ["A", "D", "R"] and (pieza.x-nuevaX == 1 or pieza.y-nuevaY == 1) if jugada[0] in ["R"] else True)):
+            and (((pieza.x == nuevaX or pieza.y == nuevaY) and jugada[0] in ["T", "D"]) \
+            or (abs(pieza.x - nuevaX) == abs(pieza.y - nuevaY) and jugada[0] in ["A", "D"]) \
+            or (jugada[0] in ["R"] and (pieza.x-nuevaX == 1 or pieza.y-nuevaY == 1))):
                 valido = True
                 
                 #zip 1: comparte columna (torre o dama)        #zip 2: comparte fila (torre o dama)       #zip 3: no comparte nada (alfil o dama)        
@@ -152,7 +152,6 @@ class Partida:
         input("\n\t    Jugada incorrecta, no hay piezas viables ...")
         return False
         
-
     def jugada_enroque(self, partida, jugada):
         print(f"dasdads  --")
 
