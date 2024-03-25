@@ -11,7 +11,8 @@ class Partida:
         self.posibles_jugadas_algebraicas = {
             r'^[a-h][1-8]$': self.movimiento_peon,                        # Movimiento de peón
             r'^[a-h]x[a-h][1-8]$': self.comer_de_peon,                    # Captura de peón
-            r'^[RDTAC]([a-h1-8])?x?[a-h][1-8]$': self.jugada_pieza,       # Movimiento o captura de una pieza (!peon)
+            r'^[RDTAC][a-h1-8]?[a-h][1-8]$': self.movimiento_pieza,       # Movimiento o captura de una pieza (!peon)
+            r'^[RDTAC][a-h1-8]?x[a-h][1-8]$': self.comer_de_pieza,       # Movimiento o captura de una pieza (!peon)
             r'^O-O(-O)?$': self.jugada_enroque,                           # Enroque ya sea largo o corto
             r'^([a-h]x)?[a-h][18](=[DTAC])$': self.jugada_promocion       # Promocíon de Peón a una pieza moviendo o comiendo
         }
@@ -106,8 +107,50 @@ class Partida:
 
         return Partida.actualiza_pieza(partida, pieza, nuevaX, nuevaY)
 
-    def jugada_pieza(self, partida, jugada):
-        print(f"dasdads  --")
+
+    def movimiento_pieza(self, partida, jugada):
+        # Si la jugada es de 4 letras, es que se ha especificado el origen de la pieza, hay que guardar este parámetro 
+        # y comparar que realmente otra pieza de este tipo también podía hacer la jugada
+        antP = None
+        if len(jugada) is 4:
+            antP = ord(jugada[1].strip())-96 if str(jugada[1]).isalpha() else int(jugada[1])
+            esX = True if str(jugada[1]).isalpha() else False
+        
+        nuevaX = ord(jugada[len(jugada)-2].strip())-96
+        nuevaY = int(jugada[len(jugada)-1])
+
+        if Partida.comprueba_pieza_casilla(partida, nuevaX, nuevaY) is not None:
+            input("\n\t    Jugada incorrecta, hay una pieza en esta casilla ...")
+            return False
+        
+        if jugada[0] is "T":
+            if antP is not None:
+                pieza = Partida.comprueba_pieza_casilla(partida, antP if esX else nuevaX, antP if not esX else nuevaY, "T", "B" if self.mueveBlancas else "N")
+        
+                if pieza is None:
+                    input("\n\t    Jugada incorrecta, no hay un Torre que pueda hacerla ..."); return False
+                
+                #Comprobamos todas las filas entre la pieza y el destino para ver que está vacío, podría comprobar solo un eje pero hago los dos pawra que sea más fácil extrapolar en un futuro
+                #for i in range(pieza.X, nuevaX, 1 if pieza.X < nuevaX else (-1 if pieza.X > nuevaX else 0)):
+                #    for j in range(pieza.Y, nuevaY, 1 if pieza.Y < nuevaY else (-1 if pieza.Y > nuevaY else 0)):
+                #        if Partida.comprueba_pieza_casilla(partida, i, j) is not None:
+                #            input("\n\t    Jugada incorrecta, no hay una Torre con visibilidad válida ..."); return False
+                
+                for i in range(pieza.x, nuevaX, 1 if pieza.x < nuevaX else -1):
+                    for j in range(pieza.y, nuevaY, 1 if pieza.y < nuevaY else -1):
+                        print("ou")
+                        if Partida.comprueba_pieza_casilla(partida, i, j) is not None:
+                            input("\n\t    Jugada incorrecta, no hay una Torre con visibilidad válida ..."); return False
+                        else:
+                            input("yeiiiiiiiii")
+                
+                return Partida.actualiza_pieza(partida, pieza, nuevaX, nuevaY)
+
+
+
+    def comer_de_pieza(self, partida, jugada):
+        pass
+
 
     def jugada_enroque(self, partida, jugada):
         print(f"dasdads  --")
