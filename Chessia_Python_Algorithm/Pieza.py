@@ -30,12 +30,12 @@ class Pieza:
         for x in range(1, 9):
             if x == 1 or x == 8:
                 piezas.append(Pieza(f"Torre-{color}", color, x, filaTrasera, True))
-            """if x == 2 or x == 7:
+            if x == 2 or x == 7:
                 piezas.append(Pieza(f"Caballo-{color}", color, x, filaTrasera))
             if x == 3 or x == 6:
                 piezas.append(Pieza(f"Alfil-{color}", color, x, filaTrasera))
             if x == 4:
-                piezas.append(Pieza(f"Dama-{color}", color, x, filaTrasera))"""
+                piezas.append(Pieza(f"Dama-{color}", color, x, filaTrasera))
             if x == 5:
                 piezas.append(Pieza(f"Rey-{color}", color, x, filaTrasera, True))
         

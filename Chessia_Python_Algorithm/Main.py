@@ -1,4 +1,5 @@
 from Partida import Partida
+import re
 
 '''
 Álgebra posible de Movimientos de Ajedrez
@@ -22,33 +23,42 @@ from Partida import Partida
 
     Consideramos los jaques (+) y los mates (#) como nomeclatura automática del programa. No es necesario especificarlos.
 
+    
+    Resultados del servidor:
+    0 - Jugada válida
+    
+    1 - Victoria Blanca
+    2 - Victoria Negra
+    3 - Tablas
+    
+   -1 - Error de sintaxis en expresión
+   -2 - Error en movimiento de peon
+   -3 - Error en comida de peon
+   -4 - Error en movimiento de pieza
+   -5 - Error de enroque por pieza desplazada
+   -6 - Error de enroque por amenaza
 '''
 
 class Main:
-
-    @staticmethod
     def main():
         partida = Partida()
-        global valido
-        valido = False
+        global valido; global finalizado
+        valido = False; finalizado = False
 
-        while True:
+        while not finalizado:
             
             Main.nuevo_movimiento(partida)
             
             while not valido:
-                partida.visualizar_partida(partida)
-                valido = partida.ejecuta_mov_entrada(input("\n\t    JUGADA DE BLANCAS: "))
-                if not valido: input("\n\t    Error en la sintaxis o jugada ...")
+                Partida.visualizar_partida(partida)
+                Main.interpreta_resultado(partida.ejecuta_mov_entrada(input("\n\t    JUGADA DE BLANCAS: ")))
 
-            Main.nuevo_movimiento(partida, "N")
+            if not finalizado:
+                Main.nuevo_movimiento(partida, "N")
 
-            while not valido:
-                partida.visualizar_partida(partida)
-                valido = partida.ejecuta_mov_entrada(input("\n\t    JUGADA DE NEGRAS: "))
-                if not valido: input("\n\t    Error en la sintaxis o jugada ...")
-            
-
+                while not valido:
+                    Partida.visualizar_partida(partida)
+                    Main.interpreta_resultado(partida.ejecuta_mov_entrada(input("\n\t    JUGADA DE NEGRAS: ")))
 
     def nuevo_movimiento(partida, color="B"):
         global valido
@@ -61,4 +71,34 @@ class Main:
         if color == "B":
             partida.turno +=1
 
+    def interpreta_resultado(resultado):
+        global valido; global finalizado
+
+        if resultado == 0: 
+            valido = True
+        
+        elif resultado in [1, 2, 3]:
+            valido = finalizado = True
+            input("\n\t    "+"="*44+"\n\t\t      "+("VICTORIA DE LAS BLANCAS" if resultado == 1 \
+                                             else(  "VICTORIA DE LAS NEGRAS " if resultado == 2 \
+                                             else   "        TABLAS         "))+"\n\t    "+"="*44)
+        
+        elif resultado == -1: input("\n\t    Error, sintaxis no válida ...")
+        
+        elif resultado == -2: input("\n\t    Error, hay una pieza en la casilla ...")
+        
+        elif resultado == -3: input("\n\t    Error en comida de peón")
+        
+        elif resultado == -4: input("\n\t    Error, no hay un peón viable ...")
+        
+        elif resultado == -5: input("\n\t    Error, fallo en relación al destino de la pieza ...")
+        
+        elif resultado == -6: input("\n\t    Error, no se ha encontrado una pieza viable ...")
+        
+        elif resultado == -7: input("\n\t    Error en actualiza_pieza(...) en Partida")
+
+        elif resultado == -8: input("\n\t    Error, pieza o jaque interfiriendo con el enroque ...")
+
+        else: input("¿?¿?¿?¿?")
+        
 Main.main()
