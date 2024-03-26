@@ -39,12 +39,14 @@ class Main:
             while not valido:
                 partida.visualizar_partida(partida)
                 valido = partida.ejecuta_mov_entrada(input("\n\t    JUGADA DE BLANCAS: "))
+                if not valido: input("\n\t    Error en la sintaxis o jugada ...")
 
             Main.nuevo_movimiento(partida, "N")
 
             while not valido:
                 partida.visualizar_partida(partida)
                 valido = partida.ejecuta_mov_entrada(input("\n\t    JUGADA DE NEGRAS: "))
+                if not valido: input("\n\t    Error en la sintaxis o jugada ...")
             
 
 

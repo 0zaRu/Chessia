@@ -8,15 +8,15 @@ class Partida:
         self.turno = 0
         self.mueveBlancas = True
         self.al_paso_activo = None
+        self.validar_ejecucion = True
         self.posibles_jugadas_algebraicas = {
             r'^[a-h][1-8]$': self.movimiento_peon,                        # Movimiento de peón
             r'^[a-h]x[a-h][1-8]$': self.comer_de_peon,                    # Captura de peón
-            r'^[RDTAC][a-h1-8]?x?[a-h][1-8]$': self.jugada_pieza,           # Movimiento o captura de una pieza (!peon)
+            r'^[RDTAC][a-h1-8]?x?[a-h][1-8]$': self.jugada_pieza,         # Movimiento o captura de una pieza (!peon)
             r'^O-O(-O)?$': self.jugada_enroque,                           # Enroque ya sea largo o corto
             r'^([a-h]x)?[a-h][18](=[DTAC])$': self.jugada_promocion       # Promocíon de Peón a una pieza moviendo o comiendo
         }
     
-    @staticmethod
     def visualizar_partida(partida, hayPieza=False):
         system("cls")
 
@@ -46,25 +46,22 @@ class Partida:
             if re.fullmatch(reg, jugada):
                 return funcion(self, jugada)                
             
-        input("\n\t    Jugada introducida no válida ...")
         return False
-            
+    
     def movimiento_peon(self, partida, jugada):
-        posible_al_paso = False
         #Guardamos las nuevas coordenadas a las que ir
         nuevaX = ord(jugada[len(jugada)-2].strip())-96
         nuevaY = int(jugada[len(jugada)-1])
+        posible_al_paso = False
 
         #Si la casilla a la que queremos mover tiene pieza, nos salimos
         if Partida.comprueba_pieza_casilla(partida, nuevaX, nuevaY) is not None:
-            input("\n\t    Jugada incorrecta, hay una pieza en esta casilla ...")
             return False
 
         #Se busca una pieza a 1 casilla de distancia
         pieza = Partida.comprueba_pieza_casilla(partida, nuevaX, nuevaY-(1 if self.mueveBlancas else -1), "Peon", "B" if self.mueveBlancas else "N" ) 
         
-        #Si no se cuentra pieza a 1 casilla de distancia
-        #Y la casilla a la que se quiere llegar es de fila 4 o 5, se busca peón a 2 casillas
+        #Si no había pieza a 1 casilla verificamos a 2 si es viable
         if pieza is None and (nuevaY == 4 and self.mueveBlancas or nuevaY == 5 and not self.mueveBlancas):
             pieza = Partida.comprueba_pieza_casilla(partida, nuevaX, nuevaY-(2 if self.mueveBlancas else -2), "Peon", "B" if self.mueveBlancas else "N")
             posible_al_paso = True
@@ -77,7 +74,6 @@ class Partida:
             if posible_al_paso and devolver: self.al_paso_activo = pieza
             return devolver
 
-        input("\n\t    Jugada incorrecta, no hay un Peón que pueda hacerla ...")
         return False
         
     def comer_de_peon(self, partida, jugada):
@@ -101,7 +97,6 @@ class Partida:
         or pieza is None \
         or abs(antX-nuevaX) != 1:
 
-            input("\n\t    Jugada incorrecta, no hay una pieza o peón válido en estas casillas ...")
             return False
 
         return Partida.actualiza_pieza(partida, pieza, nuevaX, nuevaY)
@@ -110,25 +105,25 @@ class Partida:
         #Almacenamiento de nueva casilla de destino
         nuevaX = ord(jugada[len(jugada)-2].strip())-96
         nuevaY = int(jugada[len(jugada)-1])
+        l_piezas = []
 
         #Se recoge la nueva casilla y se comprueba que si hay algo es del otro equipo y es para comer y que si no hay nada es para mover
         destino = Partida.comprueba_pieza_casilla(partida, nuevaX, nuevaY)
-        if ("x" in jugada and (destino is None or ("B" if self.mueveBlancas else "N") is destino.nombre[-1])) \
-            or ("x" not in jugada and destino is not None):
-            input("\n\t    Jugada incorrecta, problema en la casilla de destino ...")
+        if ("x" in jugada and (destino is None or ("B" if self.mueveBlancas else "N") is destino.nombre[-1])) or ("x" not in jugada and destino is not None):
             return False
         
         #Se recorren todas las piezas del tablero
         for pieza in partida.tablero:
+            if ("N" if self.mueveBlancas else "B") in pieza.nombre[-1] or jugada[0] != pieza.nombre[0]: continue
+
             #Filtramos primero los caballos, que no necesitan comprobar casillas vacias
-            if (((abs(nuevaX - pieza.x)+abs(nuevaY - pieza.y)) == 3) and (nuevaX != pieza.x and nuevaY != pieza.y) and (jugada[0] is "C" and pieza.nombre[0] is "C")): 
+            if (pieza.nombre[0] is "C" and (abs(nuevaX - pieza.x)+abs(nuevaY - pieza.y) == 3) and (nuevaX != pieza.x and nuevaY != pieza.y)): 
                 return Partida.actualiza_pieza(partida, pieza, nuevaX, nuevaY)
             
             #Filtramos la piezas, deben ser del color del turno y tener la letra de la jugada en el nombre, además de ser T, D o R si están en la misma fila o columna y ser A, D o R si es diagonal
-            if (("B" if partida.mueveBlancas else "N") in pieza.nombre and jugada[0] in pieza.nombre[0]) \
-            and (((pieza.x == nuevaX or pieza.y == nuevaY) and jugada[0] in ["T", "D"]) \
+            if (((pieza.x == nuevaX or pieza.y == nuevaY) and jugada[0] in ["T", "D"]) \
             or (abs(pieza.x - nuevaX) == abs(pieza.y - nuevaY) and jugada[0] in ["A", "D"]) \
-            or (jugada[0] in ["R"] and (pieza.x-nuevaX == 1 or pieza.y-nuevaY == 1))):
+            or (jugada[0] in ["R"] and (abs(pieza.x-nuevaX) <= 1 and abs(pieza.y-nuevaY) <= 1))):
                 valido = True
                 
                 #zip 1: comparte columna (torre o dama)        #zip 2: comparte fila (torre o dama)       #zip 3: no comparte nada (alfil o dama)        
@@ -140,13 +135,32 @@ class Partida:
                     if Partida.comprueba_pieza_casilla(partida, i, j) is not None:
                         valido = False
 
-                if valido: return Partida.actualiza_pieza(partida, pieza, nuevaX, nuevaY)    
+                if valido: l_piezas.append(pieza)
         
-        input("\n\t    Jugada incorrecta, no hay piezas viables ...")
+        if len(l_piezas) == 1 and ((len(jugada) == 4 and jugada[1] == "x") or (len(jugada) <= 3)): return Partida.actualiza_pieza(partida, l_piezas[0], nuevaX, nuevaY)
+        elif len(l_piezas) == 2 and len(jugada) >= 4 and jugada[1] != "x":
+            if re.match(r'^[a-h]$', jugada[1]) and ((l_piezas[0].x != l_piezas[1].x and l_piezas[0].y != l_piezas[1].y) or (l_piezas[0].x != l_piezas[1].x and l_piezas[0].y == l_piezas[1].y)):
+                return Partida.actualiza_pieza(partida, l_piezas[0] if ord(jugada[1].strip())-96 == l_piezas[0].x else l_piezas[1], nuevaX, nuevaY)
+
+            elif re.match(r'^[1-8]$', jugada[1]) and ((l_piezas[0].x != l_piezas[1].x and l_piezas[0].y != l_piezas[1].y) or (l_piezas[0].x == l_piezas[1].x and l_piezas[0].y != l_piezas[1].y)):
+                return Partida.actualiza_pieza(partida, l_piezas[0] if int(jugada[1]) == l_piezas[0].y else l_piezas[1], nuevaX, nuevaY)
+
         return False
         
     def jugada_enroque(self, partida, jugada):
-        print(f"dasdads  --")
+        torre = Partida.comprueba_pieza_casilla(partida, 8 if len(jugada) == 3 else 1, 1 if self.mueveBlancas else 8, "Torre", "B" if self.mueveBlancas else "N")
+        rey = Partida.comprueba_pieza_casilla(partida, 5, 1 if self.mueveBlancas else 8, "Rey", "B" if self.mueveBlancas else "N")
+
+        if torre is not None and rey is not None and torre.enrocable and rey.enrocable:
+
+            for i in range(torre.x-(-1 if torre.x < rey.x else 1), rey.x, 1 if torre.x < rey.x else -1):
+                if Partida.comprueba_pieza_casilla(partida,  i, rey.y) is not None or self.comprueba_jaque(partida, i, rey.y):
+                    return False
+
+            Partida.actualiza_pieza(partida, torre, rey.x-(1 if torre.x < rey.x else -1), rey.y)
+            Partida.actualiza_pieza(partida, rey, rey.x-(2 if torre.x < rey.x else -2), rey.y)
+            return True
+    
 
     def jugada_promocion(self, partida, jugada):
         print(f"dasdads  --")
@@ -162,15 +176,35 @@ class Partida:
         
     def actualiza_pieza(partida, pieza, nuevaX, nuevaY):
         try:
-
             pieza_a_borrar = Partida.comprueba_pieza_casilla(partida, nuevaX, nuevaY)
             if pieza_a_borrar is not None:
                 partida.tablero.__getitem__(partida.tablero.index(pieza_a_borrar)).matar()
 
-            partida.tablero.__getitem__(partida.tablero.index(pieza)).x = nuevaX
-            partida.tablero.__getitem__(partida.tablero.index(pieza)).y = nuevaY
+            if partida.validar_ejecucion:
+                partida.tablero.__getitem__(partida.tablero.index(pieza)).x = nuevaX
+                partida.tablero.__getitem__(partida.tablero.index(pieza)).y = nuevaY
+                if pieza.nombre[1] in ["T", "R"]: pieza.enrocable = False
+
             return True
 
         except Exception:
             input("\n\t    Error en actualiza_pieza(...) en Partida")
             return False
+        
+    def comprueba_jaque(self, partida, x, y):
+        partida.validar_ejecucion = False; partida.mueveBlancas = False if partida.mueveBlancas else True
+
+        if Partida.comer_de_peon(self, partida=partida, jugada=str(f"{x+95}x{x+96}{y}")) \
+        or Partida.comer_de_peon(self, partida=partida, jugada=str(f"{x+97}x{x+96}{y}")):
+            return True
+        
+        for i in ["T", "C", "A", "D", "R"]:
+            if Partida.jugada_pieza(self, partida, f"{i}x{x+96}{y}") \
+            or Partida.jugada_pieza(self, partida, f"{i}{x+96}x{x+96}{y}") \
+            or Partida.jugada_pieza(self, partida, f"{i}{y}x{x+96}{y}"):
+                partida.validar_ejecucion = True; partida.mueveBlancas = False if partida.mueveBlancas else True
+                return True
+        
+
+        partida.validar_ejecucion = True; partida.mueveBlancas = False if partida.mueveBlancas else True
+        return False
