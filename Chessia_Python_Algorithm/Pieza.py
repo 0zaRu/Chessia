@@ -18,18 +18,24 @@ class Pieza:
         self.x = 0
         self.y = 0
 
+    def revivir(self, nuevaX, nuevaY):
+        #Podría borrar el objeto, todavía no lo se
+        self.vivo = True
+        self.x = nuevaX
+        self.y = nuevaY
+
     @classmethod
     def crear_piezas_partida(self, color="B"):
         piezas = []
-        filaPeones  = 2 if color == "B" else 7
+        filaPeones  = 7 if color == "B" else 2
         filaTrasera = 1 if color == "B" else 8
 
         for x in range(1, 9):
             piezas.append(Pieza(f"Peon-{chr(x+64)}-{color}", color, x, filaPeones))
 
         for x in range(1, 9):
-            if x == 1 or x == 8:
-                piezas.append(Pieza(f"Torre-{color}", color, x, filaTrasera, True))
+            """if x == 1 or x == 8:
+                piezas.append(Pieza(f"Torre-{color}", color, x, filaTrasera, True))"""
             if x == 2 or x == 7:
                 piezas.append(Pieza(f"Caballo-{color}", color, x, filaTrasera))
             if x == 3 or x == 6:

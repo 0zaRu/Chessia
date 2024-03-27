@@ -23,6 +23,7 @@ import re
 
     Consideramos los jaques (+) y los mates (#) como nomeclatura automática del programa. No es necesario especificarlos.
 
+    ==========================================================================================================================================================================
     
     Resultados del servidor:
     0 - Jugada válida
@@ -31,12 +32,14 @@ import re
     2 - Victoria Negra
     3 - Tablas
     
-   -1 - Error de sintaxis en expresión
-   -2 - Error en movimiento de peon
-   -3 - Error en comida de peon
-   -4 - Error en movimiento de pieza
-   -5 - Error de enroque por pieza desplazada
-   -6 - Error de enroque por amenaza
+   -1 - Error, sintaxis no válida ...
+   -2 - Error, hay una pieza en la casilla ...
+   -3 - Error en comida de peón
+   -4 - Error, no hay un peón viable ...
+   -5 - Error, fallo en relación al destino de la pieza ...
+   -6 - Error, no se ha encontrado una pieza viable ...
+   -7 - Error en actualiza_pieza(...) en Partida
+   -8 - Error, pieza o jaque interfiriendo con el enroque ...
 '''
 
 class Main:
@@ -85,7 +88,7 @@ class Main:
         
         elif resultado == -1: input("\n\t    Error, sintaxis no válida ...")
         
-        elif resultado == -2: input("\n\t    Error, hay una pieza en la casilla ...")
+        elif resultado == -2: input("\n\t    Error, fallo intentando promocionar el peón ...")
         
         elif resultado == -3: input("\n\t    Error en comida de peón")
         
@@ -98,6 +101,8 @@ class Main:
         elif resultado == -7: input("\n\t    Error en actualiza_pieza(...) en Partida")
 
         elif resultado == -8: input("\n\t    Error, pieza o jaque interfiriendo con el enroque ...")
+
+        elif resultado == -9: input("\n\t    Error, estás en jaque ...")
 
         else: input("¿?¿?¿?¿?")
         
