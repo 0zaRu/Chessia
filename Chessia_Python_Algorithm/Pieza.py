@@ -27,15 +27,15 @@ class Pieza:
     @classmethod
     def crear_piezas_partida(self, color="B"):
         piezas = []
-        filaPeones  = 7 if color == "B" else 2
+        filaPeones  = 2 if color == "B" else 7
         filaTrasera = 1 if color == "B" else 8
 
         for x in range(1, 9):
             piezas.append(Pieza(f"Peon-{chr(x+64)}-{color}", color, x, filaPeones))
 
         for x in range(1, 9):
-            """if x == 1 or x == 8:
-                piezas.append(Pieza(f"Torre-{color}", color, x, filaTrasera, True))"""
+            if x == 1 or x == 8:
+                piezas.append(Pieza(f"Torre-{color}", color, x, filaTrasera, True))
             if x == 2 or x == 7:
                 piezas.append(Pieza(f"Caballo-{color}", color, x, filaTrasera))
             if x == 3 or x == 6:

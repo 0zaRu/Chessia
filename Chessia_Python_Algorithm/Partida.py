@@ -50,29 +50,33 @@ class Partida:
     
     def jugada_peon(self, partida, jugada):
         comer = posible_al_paso = False
-        if jugada[1] == "x": comer = True
-        if comer: antX = ord(jugada[len(jugada)-4].strip())-96
         nuevaX = ord(jugada[len(jugada)-2].strip())-96
         nuevaY = int(jugada[len(jugada)-1])
+        
+        if jugada[1] == "x": 
+            comer = True
+            antX = ord(jugada[len(jugada)-4].strip())-96
 
         if Partida.comprueba_pieza_casilla(partida, nuevaX, nuevaY) is (not None) if comer else (None):
             return -5
 
         #Se busca una pieza a 1 casilla de distancia
-        pieza = Partida.comprueba_pieza_casilla(partida, antX if comer else nuevaX, nuevaY-(1 if self.mueveBlancas else -1), "Peon", "B" if self.mueveBlancas else "N" ) 
+        pieza = Partida.comprueba_pieza_casilla(partida, antX if comer else nuevaX, nuevaY-(1 if self.mueveBlancas else -1), "Peon", "B" if self.mueveBlancas else "N" )
 
-        if comer: 
+        if comer and abs(antX-nuevaX) == 1:
             pieza_a_comer = Partida.comprueba_pieza_casilla(partida, nuevaX, nuevaY, "", "N" if self.mueveBlancas else "B")
             
             #Si hay una pieza válida a comer al paso, no hay pieza a donde queremos llegar, y estamos pegados a la pieza, es que es captura al paso.
-            if self.al_paso_activo is not None and pieza_a_comer is None and self.al_paso_activo.x == nuevaX and self.al_paso_activo.y == nuevaY-(1 if self.mueveBlancas else -1):
+            if self.al_paso_activo is not None and pieza_a_comer is None: #and self.al_paso_activo.x == nuevaX and self.al_paso_activo.y == nuevaY-(1 if self.mueveBlancas else -1):
                 #Desplazamos la pieza a la casilla donde queremos movernos porque así no hay que modificar algoritmos de captura y movimiento
-                if self.actualiza_pieza(partida, self.al_paso_activo, nuevaX, nuevaY) != 0 and pieza_a_comer is None and pieza is None or abs(antX-nuevaX) != 1:
+                if Partida.comprueba_pieza_casilla(partida, nuevaX, nuevaY-(1 if self.mueveBlancas else -1)) is not self.al_paso_activo \
+                or self.actualiza_pieza(partida, self.al_paso_activo, nuevaX, nuevaY) != 0:
                     return -3
 
-            return self.actualiza_pieza(partida, pieza, nuevaX, nuevaY)
+            if pieza is not None and pieza_a_comer is (None if self.al_paso_activo is not None else not None): 
+                return self.actualiza_pieza(partida, pieza, nuevaX, nuevaY)
         
-        else:
+        elif not comer:
             #Si no había pieza a 1 casilla verificamos a 2 si es viable
             if pieza is None and (nuevaY == 4 and self.mueveBlancas or nuevaY == 5 and not self.mueveBlancas):
                 pieza = Partida.comprueba_pieza_casilla(partida, nuevaX, nuevaY-(2 if self.mueveBlancas else -2), "Peon", "B" if self.mueveBlancas else "N")
@@ -86,8 +90,8 @@ class Partida:
                 if posible_al_paso and devolver == 0: self.al_paso_activo = pieza
                 return devolver
 
-            return -4
-
+        return -4
+        
     def jugada_pieza(self, partida, jugada):
         #Almacenamiento de nueva casilla de destino
         nuevaX = ord(jugada[len(jugada)-2].strip())-96
@@ -199,21 +203,24 @@ class Partida:
 
             #Validamos que al hacer movimiento no hemos dejado un rey al descubierto, y si lo hicimos, volvemos para atrás
             if (self.mueveBlancas and self.hay_jaque(partida, rey_blanco.x, rey_blanco.y)) or (not self.mueveBlancas and self.hay_jaque(partida, rey_negro.x, rey_negro.y)):
-                pieza_a_borrar.revivir(nuevaX, nuevaY)
                 pieza.x = antX
                 pieza.y = antY
+                if pieza_a_borrar is not None:
+                    pieza_a_borrar.revivir(nuevaX, nuevaY)
+                    
                 return -9
             
             #Si hemos sido capaces de desplazar una torre o rey, quitamos su capacidad de enroque
             if pieza.nombre[0] in ["T", "R"] and self.validar_ejecucion: pieza.enrocable = False
             
             #Si hemos dado jaque, comprobamos si es mate 0 = No, 1 = Blancas, 2 = Negras
-            if posible_mate: 
-                return self.hay_mate(partida, rey_negro if self.mueveBlancas else rey_blanco)
+            #if posible_mate: 
+            #    return self.hay_mate(partida, rey_negro if self.mueveBlancas else rey_blanco)
             
             return 0
 
         #except Exception:
+        #    input("No se como pero error en except de actualiza_pieza")
         #    return -7
         
     def hay_jaque(self, partida, x, y):
