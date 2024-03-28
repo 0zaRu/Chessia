@@ -147,7 +147,7 @@ class Partida:
         if torre is not None and rey is not None and torre.enrocable and rey.enrocable:
 
             for i in range(torre.x, rey.x+(1 if torre.x < rey.x else -1), 1 if torre.x < rey.x else -1):
-                if (Partida.comprueba_pieza_casilla(partida, i, rey.y) is not None and i != torre.x and i != rey.x) or self.hay_jaque(partida, i, rey.y):
+                if (Partida.comprueba_pieza_casilla(partida, i, rey.y) is not None and i != torre.x and i != rey.x) or self.hay_mov_contrario(partida, i, rey.y):
                     return -8
 
             self.actualiza_pieza(partida, torre, rey.x-(1 if torre.x < rey.x else -1), rey.y)
@@ -198,16 +198,16 @@ class Partida:
 
                 pieza.x = nuevaX
                 pieza.y = nuevaY
-                posible_mate = self.hay_jaque(partida, (rey_negro if self.mueveBlancas else rey_blanco).x, (rey_negro if self.mueveBlancas else rey_blanco).y)
+                posible_mate = self.hay_mov_contrario(partida, (rey_negro if self.mueveBlancas else rey_blanco).x, (rey_negro if self.mueveBlancas else rey_blanco).y)
 
 
             #Validamos que al hacer movimiento no hemos dejado un rey al descubierto, y si lo hicimos, volvemos para atrás
-            if (self.mueveBlancas and self.hay_jaque(partida, rey_blanco.x, rey_blanco.y)) or (not self.mueveBlancas and self.hay_jaque(partida, rey_negro.x, rey_negro.y)):
+            if (self.mueveBlancas and self.hay_mov_contrario(partida, rey_blanco.x, rey_blanco.y)) or (not self.mueveBlancas and self.hay_mov_contrario(partida, rey_negro.x, rey_negro.y)):
                 pieza.x = antX
                 pieza.y = antY
                 if pieza_a_borrar is not None:
                     pieza_a_borrar.revivir(nuevaX, nuevaY)
-                    
+
                 return -9
             
             #Si hemos sido capaces de desplazar una torre o rey, quitamos su capacidad de enroque
@@ -223,23 +223,24 @@ class Partida:
         #    input("No se como pero error en except de actualiza_pieza")
         #    return -7
         
-    def hay_jaque(self, partida, x, y):
+    def hay_mov_contrario(self, partida, x, y):
         self.validar_ejecucion = False; self.mueveBlancas = (False if self.mueveBlancas else True)
-        hayJaque = False
+        hayMovimiento = False
         
         if Partida.jugada_peon(self, partida, f"{chr(x+95)}x{chr(x+96)}{y}") == 0 \
         or Partida.jugada_peon(self, partida, f"{chr(x+97)}x{chr(x+96)}{y}") == 0:
-            hayJaque = True
+            hayMovimiento = True
         
         for i in ["T", "C", "A", "D", "R"]:
             if Partida.jugada_pieza(self, partida, f"{i}x{chr(x+96)}{y}") == 0 \
             or Partida.jugada_pieza(self, partida, f"{i}{chr(x+96)}x{chr(x+96)}{y}") == 0 \
             or Partida.jugada_pieza(self, partida, f"{i}{y}x{chr(x+96)}{y}") == 0:
-                hayJaque = True
+                hayMovimiento = True
         
 
         self.validar_ejecucion = True; self.mueveBlancas = (False if self.mueveBlancas else True)
-        return hayJaque
+        return hayMovimiento
     
     def hay_mate(self, partida, rey):
+        # Si hemos llegado aquí es porque el rey contrario al turno está en jaque
         pass
