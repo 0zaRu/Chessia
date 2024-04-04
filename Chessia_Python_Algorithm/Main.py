@@ -50,8 +50,8 @@ from Partida import Partida
 
 class Main:
     def main():
+        global partida; global valido; global finalizado
         partida = Partida()
-        global valido; global finalizado
         valido = False; finalizado = False
 
         while not finalizado:
@@ -82,11 +82,13 @@ class Main:
             partida.turno +=1
 
     def interpreta_resultado(resultado):
-        global valido; global finalizado
+        global valido; global finalizado; global partida
 
         if resultado == 0: valido = True
         elif resultado in [1, 2, 3]:
             valido = finalizado = True
+            Partida.visualizar_experimental(partida)
+            
             input("\n\t    "+"="*44+"\n\t\t      "+("VICTORIA DE LAS BLANCAS" if resultado == 1 else(  "VICTORIA DE LAS NEGRAS " if resultado == 2 else   "        TABLAS         "))+"\n\t    "+"="*44)
         
         elif resultado in [4, 5]:
