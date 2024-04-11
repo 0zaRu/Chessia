@@ -11,10 +11,10 @@ class Partida:
         self.al_paso_activo = None
         self.validar_mas = True
         self.posibles_jugadas_algebraicas = {
-            r'^([a-h]x)?[a-h][2-7]$': self.jugada_peon,                        # Movimiento de peón
-            r'^[RDTAC][a-h1-8]?x?[a-h][1-8]$': self.jugada_pieza,         # Movimiento o captura de una pieza (!peon)
-            r'^O-O(-O)?$': self.jugada_enroque,                           # Enroque ya sea largo o corto
-            r'^([a-h]x)?[a-h][18](=[DTAC])$': self.jugada_promocion       # Promocíon de Peón a una pieza moviendo o comiendo
+            r'^([a-h]x)?[a-h][2-7]([+#])?$': self.jugada_peon,                        # Movimiento de peón
+            r'^[RDTAC][a-h1-8]?x?[a-h][1-8]([+#])?$': self.jugada_pieza,         # Movimiento o captura de una pieza (!peon)
+            r'^O-O(-O)?([+#])?$': self.jugada_enroque,                           # Enroque ya sea largo o corto
+            r'^([a-h]x)?[a-h][18](=[DTAC])([+#])?$': self.jugada_promocion       # Promocíon de Peón a una pieza moviendo o comiendo
         }
         self.caracteres_ajedrez = {
             "P": "♟",
@@ -79,6 +79,9 @@ class Partida:
         self.validar_mas = validarMas
         for reg, funcion in self.posibles_jugadas_algebraicas.items():
             if re.fullmatch(reg, jugada):
+                if jugada[-1] in ["#", "+"]:
+                    jugada = jugada[:-1]
+                    
                 devolver = funcion(jugada)
                 
                 #Validamos que no se haya quedado en tablas
