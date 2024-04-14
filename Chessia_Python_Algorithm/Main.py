@@ -24,7 +24,7 @@ from Partida import Partida
 
     ==========================================================================================================================================================================
     
-    Resultados del servidor:
+Resultados del servidor:
     0 - Jugada válida
     
     1 - Victoria Blanca
@@ -111,3 +111,32 @@ class Main:
         
 
 Main.main()
+
+"""
+
+         e4
+        e4+
+        Ne4
+        O-O
+       Ne4+
+       O-O+
+       exd6
+       Nee4
+       g8=D
+       N4e4
+       Nxe4
+      exd6+
+      N4e4+
+      Nxe4+
+      Nee4+
+      g8=D+
+      Nexe4
+      N4xe4
+      O-O-O
+     Nexe4+
+     N4xe4+
+     O-O-O+
+     hxg8=D
+    hxg8=D+
+
+"""
