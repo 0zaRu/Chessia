@@ -2,19 +2,39 @@ import os
 import re
 import json
 
-"""
+"""                   ORIGINAL
+
 Se han tomado:    103.371 partidas para la conversión
 De resultado hay: 103.351 partidas convertidas
 """
+
+"""                  EXPANSION
+
+Se han tomado:    102.880 partidas para la conversión
+De resultado hay: 102.588 partidas convertidas
+"""
+
+
+
+"""                   ORIGINAL
+
+DIRECTORIO_FUENTE = "Chessia_Data_Convert/Source Data/original"
+FICHERO_DESTINO_V1 = "Chessia_Data_Convert/Target Data/original/Datos Preprocesados"
+FICHERO_DESTINO_V2 = "Chessia_Data_Convert/Target Data/original/Datos-V2.json"
+"""
+
+"""                  EXPANSION                   """
+
+DIRECTORIO_FUENTE = "Chessia_Data_Convert/Source Data/expansion"
+FICHERO_DESTINO_V1 = "Chessia_Data_Convert/Target Data/expansion/Datos Preprocesados"
+FICHERO_DESTINO_V2 = "Chessia_Data_Convert/Target Data/expansion/Datos-V2.json"
+
+
 
 class Partida:
     def __init__(self):
         self.movimientos = []
         self.resultado = None
-
-DIRECTORIO_FUENTE = "Chessia_Data_Convert/Source Data"
-FICHERO_DESTINO_V1 = "Chessia_Data_Convert/Target Data/Datos Preprocesados"
-FICHERO_DESTINO_V2 = "Chessia_Data_Convert/Target Data/Datos-V2.json"
 
 def procesar_fichero_pgn_fase_1(archivo_pgn, archivo_destino):
     with open(archivo_pgn, 'r') as lector, open(archivo_destino, 'a') as escritor:
