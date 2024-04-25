@@ -18,16 +18,16 @@ De resultado hay: 102.588 partidas convertidas
 
 """                   ORIGINAL
 
-DIRECTORIO_FUENTE = "Chessia_Data_Convert/Source Data/original"
-FICHERO_DESTINO_V1 = "Chessia_Data_Convert/Target Data/original/Datos Preprocesados"
-FICHERO_DESTINO_V2 = "Chessia_Data_Convert/Target Data/original/Datos-V2.json"
+DIRECTORIO_FUENTE = "LILITH/Chessia_Data_Convert/Source Data/original"
+FICHERO_DESTINO_V1 = "LILITH/Chessia_Data_Convert/Target Data/original/Datos Preprocesados"
+FICHERO_DESTINO_V2 = "LILITH/Chessia_Data_Convert/Target Data/original/Datos-V2.json"
 """
 
 """                  EXPANSION                   """
 
-DIRECTORIO_FUENTE = "Chessia_Data_Convert/Source Data/expansion"
-FICHERO_DESTINO_V1 = "Chessia_Data_Convert/Target Data/expansion/Datos Preprocesados"
-FICHERO_DESTINO_V2 = "Chessia_Data_Convert/Target Data/expansion/Datos-V2.json"
+DIRECTORIO_FUENTE = " LILITH/Chessia_Data_Convert/Source Data/expansion"
+FICHERO_DESTINO_V1 = "LILITH/Chessia_Data_Convert/Target Data/expansion/Datos Preprocesados"
+FICHERO_DESTINO_V2 = "LILITH/Chessia_Data_Convert/Target Data/expansion/Datos-V2.json"
 
 
 
