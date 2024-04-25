@@ -3,7 +3,7 @@ from os import system
 from copy import deepcopy
 import re
 
-class Partida:
+class Partida: 
     def __init__(self):
         self.tablero = Pieza.crear_piezas_partida()
         self.turno = 0
