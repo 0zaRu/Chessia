@@ -1,53 +1,5 @@
 from Partida import Partida
 
-"""
-Álgebra posible de Movimientos de Ajedrez
-
-    e4             - Peón de la misma columna
-
-    Ne4            - Cualquier pieza menos el peón desplazándose a e4
-    O-O            - Enroque corto
-    
-    exd6           - Peón de e5 come al paso el peón de d5, colocándose en d6. O el peón de e captura a un peón en d6. Solo es al paso si acaba de salir el peón a 2 casillas
-    Nee4           - Cuando dos figuras iguales pueden optar a una casilla, 
-    N4e4             se especifica haciendo referencia a su columna/fila distintiva previo a la casilla a la que se quiere mover
-    Nxe4           - La pieza especificada come en e4
-    g8=[D/T/C/A]   - El peón de g7 avanza a g8 y corona
-    
-    Nexe4          - La pieza que se especifica con su columna/fila distintiva por necesidad, captura en e4
-    N4xe4   
-    O-O-O          - Enroque largo
-    
-    hxg8=[D/T/C/A] - El peón de h7 captura en g8 y corona
-
-    Consideramos los jaques (+) y los mates (#) como nomeclatura automática del programa. No es necesario especificarlos.
-
-    ==========================================================================================================================================================================
-    
-Resultados del servidor:
-    0 - Jugada válida
-    
-    1 - Victoria Blanca
-    2 - Victoria Negra
-    3 - Tablas
-    4 - Jaque al blanco
-    5 - Jaque al negro
-    
-   -1  - Error, sintaxis no válida ...
-   -2  - Error, fallo intentando promocionar el peón ...
-   -3  - Error en comida de peón
-   -4  - Error, no hay un peón viable ...
-   -5  - Error, fallo en relación al destino de la pieza ...
-   -6  - Error, no se ha encontrado una pieza viable ...
-   -7  - Excepción actualizando la pieza ...
-   -8  - Error, pieza o jaque interfiriendo con el enroque ...
-   -9  - Error, estás en jaque ...
-   -10 - Error, jugada de peón de promoción no válida ...
-   -11 - Error, no hay torre o rey en su casilla inicial ...
-   -12 - Error, no puedes comer al Rey, aunque aquí no deberías poder llegawr ...
-
-"""
-
 class Main:
     def main():
         global partida; global valido; global finalizado
@@ -59,15 +11,15 @@ class Main:
             Main.nuevo_movimiento(partida)
             
             while not valido:
-                Partida.visualizar_experimental(partida)
-                Main.interpreta_resultado(partida.ejecuta_mov_entrada(input("\n\t    JUGADA DE BLANCAS: ")))
+                Partida.visualizar_partida(partida, "B")
+                Main.interpreta_resultado(partida.ejecutar_jugada(input("\n\t    JUGADA DE BLANCAS: ")))
 
             if not finalizado:
                 Main.nuevo_movimiento(partida, "N")
 
                 while not valido:
-                    Partida.visualizar_experimental(partida)
-                    Main.interpreta_resultado(partida.ejecuta_mov_entrada(input("\n\t    JUGADA DE NEGRAS: ")))
+                    Partida.visualizar_partida(partida, "N")
+                    Main.interpreta_resultado(partida.ejecutar_jugada(input("\n\t    JUGADA DE NEGRAS: ")))
 
     def nuevo_movimiento(partida, color="B"):
         global valido; global finalizado
@@ -87,7 +39,7 @@ class Main:
         if resultado == 0: valido = True
         elif resultado in [1, 2, 3]:
             valido = finalizado = True
-            Partida.visualizar_experimental(partida)
+            Partida.visualizar_partida(partida)
             
             input("\n\t    "+"="*44+"\n\t\t      "+("VICTORIA DE LAS BLANCAS" if resultado == 1 else(  "VICTORIA DE LAS NEGRAS " if resultado == 2 else   "        TABLAS         "))+"\n\t    "+"="*44)
         
@@ -113,30 +65,36 @@ class Main:
 Main.main()
 
 """
+    ==========================================================================================================================================================================
 
-         e4 -
-        e4+ -
-        Ne4 -
-        O-O -
-       Ne4+ -
-       O-O+ -
-       exd6 -
-       Nee4 -
-       g8=D -
-       N4e4 -
-       Nxe4 -
-      exd6+ -
-      N4e4+ -
-      Nxe4+ -
-      Nee4+ -
-      g8=D+ -
-      Nexe4 -
-      N4xe4 -
-      O-O-O -
-     Nexe4+ -
-     N4xe4+ -
-     O-O-O+ -
-     hxg8=D -
-    hxg8=D+ -
 
+    Álgebra posible de Movimientos de Ajedrez
+
+            e4             - Peón de la misma columna
+
+            [D/T/C/A]e4    - Cualquier pieza menos el peón desplazándose a e4
+            
+            O-O            - Enroque corto
+            
+            exd6           - Peón de e5 come al paso el peón de d5, colocándose en d6. O el peón de e captura a un peón en d6. Solo es al paso si acaba de salir el peón a 2 casillas
+            
+            [D/T/C/A]ee4   - Cuando dos figuras iguales pueden optar a una casilla, 
+            
+            [D/T/C/A]4e4     se especifica haciendo referencia a su columna/fila distintiva previo a la casilla a la que se quiere mover
+            
+            [D/T/C/A]xe4   - La pieza especificada come en e4
+
+            g8=[D/T/C/A]   - El peón de g7 avanza a g8 y corona
+
+            [D/T/C/A]exe4  - La pieza que se especifica con su columna/fila distintiva por necesidad, captura en e4
+            
+            [D/T/C/A]4xe4
+            
+            O-O-O          - Enroque largo
+            
+            hxg8=[D/T/C/A] - El peón de h7 captura en g8 y corona
+
+            Consideramos los jaques (+) como nomeclatura automática del programa. No es necesario especificarlos.
+
+    ==========================================================================================================================================================================
 """

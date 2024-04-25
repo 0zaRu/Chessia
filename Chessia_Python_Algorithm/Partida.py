@@ -8,6 +8,7 @@ class Partida:
         self.tablero = Pieza.crear_piezas_partida()
         self.turno = 0
         self.mueveBlancas = True
+        self.jugada = ""
         self.al_paso_activo = None
         self.validar_mas = True
         self.posibles_jugadas_algebraicas = {
@@ -25,44 +26,20 @@ class Partida:
             "R": "♚"
         }
     
-    def visualizar_partida(self):
+    def visualizar_partida(self, color):
         hayPieza=False
         system("cls")
 
         print("\n",("\t")*3,"RONDA",self.turno)
         print(("\t   ")*1,"=================================")
 
-        print("\t      a   b   c   d   e   f   g   h \t")
+        if color == "B": print("\t      a   b   c   d   e   f   g   h \t")
+        else:            print("\t      h   g   f   e   d   c   b   a \t")
         print("\t    ╔"+("═══╦")*7+"═══╗ \t")
 
-        for i in range(7, -1, -1):
+        for i in (range(7, -1, -1) if color == "B" else range(0, 8)):
             print(f"\t  {i+1} ", end="")
-            for j in range(7, -1, -1):
-                for pieza in self.tablero:
-                    if pieza.y-1 == i and pieza.x-1 == 7-j:
-                        print("║ "+pieza.nombre[0]+" "    if pieza.color == "B" else   "║ \033[31m"+pieza.nombre[0]+"\033[0m ", end="")
-                        hayPieza = True
-                        break
-                if not hayPieza:
-                    print("║   ", end="")
-                else:
-                    hayPieza = False
-            
-            print("║\n"+("\t    ╚"+("═══╩"*7)+"═══╝ \t" if i == 0 else "\t    ╠"+("═══╬"*7)+"═══╣ \t"))
-
-    def visualizar_experimental(self):
-        hayPieza=False
-        system("cls")
-
-        print("\n",("\t")*3,"RONDA",self.turno)
-        print(("\t   ")*1,"=================================")
-
-        print("\t      a   b   c   d   e   f   g   h \t")
-        print("\t    ╔"+("═══╦")*7+"═══╗ \t")
-
-        for i in range(7, -1, -1):
-            print(f"\t  {i+1} ", end="")
-            for j in range(7, -1, -1):
+            for j in (range(7, -1, -1) if color == "B" else range(0, 8)):
                 for pieza in self.tablero:
                     if pieza.y-1 == i and pieza.x-1 == 7-j:
                         print("║ "+self.caracteres_ajedrez[pieza.nombre[0]]+" "    if pieza.color == "B" else   "║ \033[31m"+self.caracteres_ajedrez[pieza.nombre[0]]+"\033[0m ", end="")
@@ -73,16 +50,17 @@ class Partida:
                 else:
                     hayPieza = False
             
-            print("║\n"+("\t    ╚"+("═══╩"*7)+"═══╝ \t" if i == 0 else "\t    ╠"+("═══╬"*7)+"═══╣ \t"))
+            print("║\n"+("\t    ╚"+("═══╩"*7)+"═══╝ \t" if i == (0 if color == "B" else 7) else "\t    ╠"+("═══╬"*7)+"═══╣ \t"))
 
-    def ejecuta_mov_entrada(self, jugada, validacionContraria=True, validarMas=True):
+    def ejecutar_jugada(self, jugada, validacionContraria=True, validarMas=True):
         self.validar_mas = validarMas
         for reg, funcion in self.posibles_jugadas_algebraicas.items():
             if re.fullmatch(reg, jugada):
                 if jugada[-1] in ["#", "+"]:
                     jugada = jugada[:-1]
-                    
-                devolver = funcion(jugada)
+                
+                self.jugada = jugada
+                devolver = funcion()
                 
                 #Validamos que no se haya quedado en tablas
                 if validacionContraria:
@@ -96,14 +74,14 @@ class Partida:
                 return devolver
         return -1
     
-    def jugada_peon(self, jugada):
+    def jugada_peon(self):
         comer = posible_al_paso = False
-        nuevaX = ord(jugada[len(jugada)-2].strip())-96
-        nuevaY = int(jugada[len(jugada)-1])
+        nuevaX = ord(self.jugada[len(self.jugada)-2].strip())-96
+        nuevaY = int(self.jugada[len(self.jugada)-1])
         
-        if jugada[1] == "x": 
+        if self.jugada[1] == "x": 
             comer = True
-            antX = ord(jugada[len(jugada)-4].strip())-96
+            antX = ord(self.jugada[len(self.jugada)-4].strip())-96
 
         if Partida.comprueba_pieza_casilla(self, nuevaX, nuevaY) is (not None) if comer else (None):
             return -5
@@ -142,29 +120,29 @@ class Partida:
 
         return -4
         
-    def jugada_pieza(self, jugada):
+    def jugada_pieza(self):
         #Almacenamiento de nueva casilla de destino
-        nuevaX = ord(jugada[len(jugada)-2].strip())-96
-        nuevaY = int(jugada[len(jugada)-1])
+        nuevaX = ord(self.jugada[len(self.jugada)-2].strip())-96
+        nuevaY = int(self.jugada[len(self.jugada)-1])
         l_piezas = []
 
         #Se recoge la nueva casilla y se comprueba que si hay algo es del otro equipo y es para comer y que si no hay nada es para mover
         destino = Partida.comprueba_pieza_casilla(self, nuevaX, nuevaY)
-        if ("x" in jugada and (destino is None or ("B" if self.mueveBlancas else "N") == destino.nombre[-1])) or ("x" not in jugada and destino is not None):
+        if ("x" in self.jugada and (destino is None or ("B" if self.mueveBlancas else "N") == destino.nombre[-1])) or ("x" not in self.jugada and destino is not None):
             return -5
         
         #Se recorren todas las piezas del tablero
         for pieza in self.tablero:
-            if ("N" if self.mueveBlancas else "B") in pieza.nombre[-1] or jugada[0] != pieza.nombre[0] or not pieza.vivo: continue
+            if ("N" if self.mueveBlancas else "B") in pieza.nombre[-1] or self.jugada[0] != pieza.nombre[0] or not pieza.vivo: continue
 
             #Filtramos primero los caballos, que no necesitan comprobar casillas vacias
             if (pieza.nombre[0] == "C" and (abs(nuevaX - pieza.x)+abs(nuevaY - pieza.y) == 3) and (nuevaX != pieza.x and nuevaY != pieza.y)): 
                 return self.actualiza_pieza(pieza, nuevaX, nuevaY)
             
             #Filtramos la piezas, deben ser del color del turno y tener la letra de la jugada en el nombre, además de ser T, D o R si están en la misma fila o columna y ser A, D o R si es diagonal
-            if (((pieza.x == nuevaX or pieza.y == nuevaY) and jugada[0] in ["T", "D"]) \
-            or (abs(pieza.x - nuevaX) == abs(pieza.y - nuevaY) and jugada[0] in ["A", "D"]) \
-            or (jugada[0] in ["R"] and (abs(pieza.x-nuevaX) <= 1 and abs(pieza.y-nuevaY) <= 1))):
+            if (((pieza.x == nuevaX or pieza.y == nuevaY) and self.jugada[0] in ["T", "D"]) \
+            or (abs(pieza.x - nuevaX) == abs(pieza.y - nuevaY) and self.jugada[0] in ["A", "D"]) \
+            or (self.jugada[0] in ["R"] and (abs(pieza.x-nuevaX) <= 1 and abs(pieza.y-nuevaY) <= 1))):
                 valido = True
                 
                 #zip 1: comparte columna (torre o dama)        #zip 2: comparte fila (torre o dama)       #zip 3: no comparte nada (alfil o dama)        
@@ -178,20 +156,20 @@ class Partida:
 
                 if valido and pieza.vivo: l_piezas.append(pieza)
         
-        if len(l_piezas) == 1 and ((len(jugada) == 4 and jugada[1] == "x") or (len(jugada) <= 3)): 
+        if len(l_piezas) == 1 and ((len(self.jugada) == 4 and self.jugada[1] == "x") or (len(self.jugada) <= 3)): 
             return self.actualiza_pieza(l_piezas[0], nuevaX, nuevaY)
         
-        elif len(l_piezas) == 2 and len(jugada) >= 4 and jugada[1] != "x":
-            if re.match(r'^[a-h]$', jugada[1]) and ((l_piezas[0].x != l_piezas[1].x and l_piezas[0].y != l_piezas[1].y) or (l_piezas[0].x != l_piezas[1].x and l_piezas[0].y == l_piezas[1].y)):
-                return self.actualiza_pieza(l_piezas[0] if ord(jugada[1].strip())-96 == l_piezas[0].x else l_piezas[1], nuevaX, nuevaY)
+        elif len(l_piezas) == 2 and len(self.jugada) >= 4 and self.jugada[1] != "x":
+            if re.match(r'^[a-h]$', self.jugada[1]) and ((l_piezas[0].x != l_piezas[1].x and l_piezas[0].y != l_piezas[1].y) or (l_piezas[0].x != l_piezas[1].x and l_piezas[0].y == l_piezas[1].y)):
+                return self.actualiza_pieza(l_piezas[0] if ord(self.jugada[1].strip())-96 == l_piezas[0].x else l_piezas[1], nuevaX, nuevaY)
 
-            elif re.match(r'^[1-8]$', jugada[1]) and ((l_piezas[0].x != l_piezas[1].x and l_piezas[0].y != l_piezas[1].y) or (l_piezas[0].x == l_piezas[1].x and l_piezas[0].y != l_piezas[1].y)):
-                return self.actualiza_pieza(l_piezas[0] if int(jugada[1]) == l_piezas[0].y else l_piezas[1], nuevaX, nuevaY)
+            elif re.match(r'^[1-8]$', self.jugada[1]) and ((l_piezas[0].x != l_piezas[1].x and l_piezas[0].y != l_piezas[1].y) or (l_piezas[0].x == l_piezas[1].x and l_piezas[0].y != l_piezas[1].y)):
+                return self.actualiza_pieza(l_piezas[0] if int(self.jugada[1]) == l_piezas[0].y else l_piezas[1], nuevaX, nuevaY)
 
         return -6
         
-    def jugada_enroque(self, jugada):
-        torre = Partida.comprueba_pieza_casilla(self, 8 if len(jugada) == 3 else 1, 1 if self.mueveBlancas else 8, "Torre", "B" if self.mueveBlancas else "N")
+    def jugada_enroque(self):
+        torre = Partida.comprueba_pieza_casilla(self, 8 if len(self.jugada) == 3 else 1, 1 if self.mueveBlancas else 8, "Torre", "B" if self.mueveBlancas else "N")
         rey = Partida.comprueba_pieza_casilla(self, 5, 1 if self.mueveBlancas else 8, "Rey", "B" if self.mueveBlancas else "N")
 
         if torre is not None and rey is not None and torre.enrocable and rey.enrocable:
@@ -206,16 +184,16 @@ class Partida:
             return 0
         return -11
     
-    def jugada_promocion(self, jugada):
+    def jugada_promocion(self):
         color = "B" if self.mueveBlancas else "N"
         #Si el movimiento no se puede realizar nos salimos
-        if self.jugada_peon(jugada[:-2]) == 0:
-            peon_promocionado = Partida.comprueba_pieza_casilla(self, ord(jugada[-4].strip())-96, int(jugada[-3]), "Peon")
+        if self.jugada_peon(self.jugada[:-2]) == 0:
+            peon_promocionado = Partida.comprueba_pieza_casilla(self, ord(self.jugada[-4].strip())-96, int(self.jugada[-3]), "Peon")
             if peon_promocionado is not None:
-                if   jugada[-1] == "D": peon_promocionado.nombre = "Dama"   + color
-                elif jugada[-1] == "T": peon_promocionado.nombre = "Torre"  + color
-                elif jugada[-1] == "A": peon_promocionado.nombre = "Alfil"  + color
-                elif jugada[-1] == "C": peon_promocionado.nombre = "Caballo"+ color
+                if   self.jugada[-1] == "D": peon_promocionado.nombre = "Dama"   + color
+                elif self.jugada[-1] == "T": peon_promocionado.nombre = "Torre"  + color
+                elif self.jugada[-1] == "A": peon_promocionado.nombre = "Alfil"  + color
+                elif self.jugada[-1] == "C": peon_promocionado.nombre = "Caballo"+ color
                 else: return -2
                 return 0
 
@@ -284,14 +262,14 @@ class Partida:
 
         #Si la pieza es nula o es una pieza diferente de un peón, vamos a intentar ejecutar un movimiento directamente con esta
         for i in ["T", "C", "A", "D", "R"]:
-            if partida_copia.ejecuta_mov_entrada(f"{i}x{chr(desX+96)}{desY}"               if comer else   f"{i}{chr(desX+96)}{desY}"              , False, validarMas) >= 0 \
-            or partida_copia.ejecuta_mov_entrada(f"{i}{chr(desX+96)}x{chr(desX+96)}{desY}" if comer else   f"{i}{chr(desX+96)}{chr(desX+96)}{desY}", False, validarMas) >= 0 \
-            or partida_copia.ejecuta_mov_entrada(f"{i}{desY}x{chr(desX+96)}{desY}"         if comer else   f"{i}{desY}{chr(desX+96)}{desY}"        , False, validarMas) >= 0:
+            if partida_copia.ejecutar_jugada(f"{i}x{chr(desX+96)}{desY}"               if comer else   f"{i}{chr(desX+96)}{desY}"              , False, validarMas) >= 0 \
+            or partida_copia.ejecutar_jugada(f"{i}{chr(desX+96)}x{chr(desX+96)}{desY}" if comer else   f"{i}{chr(desX+96)}{chr(desX+96)}{desY}", False, validarMas) >= 0 \
+            or partida_copia.ejecutar_jugada(f"{i}{desY}x{chr(desX+96)}{desY}"         if comer else   f"{i}{desY}{chr(desX+96)}{desY}"        , False, validarMas) >= 0:
                 return True
         
-        if (comer     and partida_copia.ejecuta_mov_entrada(f"{chr(desX+95)}x{chr(desX+96)}{desY}", False, validarMas) >= 0 )\
-        or (comer     and partida_copia.ejecuta_mov_entrada(f"{chr(desX+97)}x{chr(desX+96)}{desY}", False, validarMas) >= 0 )\
-        or (not comer and partida_copia.ejecuta_mov_entrada(f"{chr(desX+96)}{desY}"               , False, validarMas) >= 0 ):
+        if (comer     and partida_copia.ejecutar_jugada(f"{chr(desX+95)}x{chr(desX+96)}{desY}", False, validarMas) >= 0 )\
+        or (comer     and partida_copia.ejecutar_jugada(f"{chr(desX+97)}x{chr(desX+96)}{desY}", False, validarMas) >= 0 )\
+        or (not comer and partida_copia.ejecutar_jugada(f"{chr(desX+96)}{desY}"               , False, validarMas) >= 0 ):
             return True
         
         return False
@@ -305,3 +283,4 @@ class Partida:
                     return True
                 
         return False
+    
