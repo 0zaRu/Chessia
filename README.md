@@ -25,3 +25,8 @@ tratamiento de partidas y generación de tokens. La carpeta “Chessia_AI_Traini
 con una carpeta por versión entrenada (entrenados en los .ipynb). Para acabar
 está la carpeta “Chessia_AI_Player”, con el contenido utilizado en NEPTUNE para
 habilitar el uso de LILITH03 con ADAM.
+=======
+Cross-platform development of a Chess game in Docker server on AWS with integrated gaming neural network  
+
+Final project by Alberto Rodríguez Pérez. 
+Cross-platform application development cycle (DAM). IES Venancio Blanco.
