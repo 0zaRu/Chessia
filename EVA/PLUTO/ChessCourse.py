@@ -18,7 +18,7 @@ class ChessCourse:
                 ChessCourse.nuevo_movimiento(partida, "N")
 
                 while not valido:
-                    Partida.visualizar_partida(partida, "N")
+                    Partida.visualizar_partida(partida, "B")
                     ChessCourse.interpreta_resultado(partida.ejecutar_jugada(input("\n\t    JUGADA DE NEGRAS: ")))
 
     def nuevo_movimiento(partida, color="B"):
